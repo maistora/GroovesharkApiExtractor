@@ -8,6 +8,8 @@ import (
 	"io/ioutil"
 )
 
+var FILE_NAME = "groovesharkApi.go"
+
 type FuncProperties struct {
 	name string
 	doc string
@@ -56,19 +58,21 @@ func extractDivWithFunctions(page, classifier string) string {
 
 func getAllLinksToFunctions(mainDiv string) []string {
 	links := make([]string, 0, 0)
+	links = append(links, "http://google.bg")
+	links = append(links, "http://google.bg")
 	return links 
 }
 
-func createApiGoFile(links []string) *os.File { // TODO return the file - its not valid type maybe
-	//file := getNewGoFile("groovesharkApi.go")
+func createApiGoFile(links []string) {
+	plainGoFileStr := getPlainGoFile()
+    appendTextToFile(plainGoFileStr, FILE_NAME)
 	for _, link := range links {
+		fmt.Println(link)
 		funcPage := getPageAsString(link)
 		funcProps := extractFuncProperties(funcPage)
 		funcString := populateFuncTemplate(funcProps)
-		appendFuncToFile(funcString, "groovesharkApi.go")
+		appendTextToFile(funcString, FILE_NAME)
 	}
-	return nil 
-//	return file
 }
 
 func extractFuncProperties(funcPage string) *FuncProperties{
@@ -83,7 +87,7 @@ func populateFuncTemplate(props *FuncProperties) string {
 	doc := strings.Replace(props.doc, "\n", "\n//", -1)
 	funcName := props.name
 	params := buildFuncParams(props.params)
-	return fmt.Sprintf("\n//%v\n//func %v(%v) {\n}\n", doc, funcName, params)
+	return fmt.Sprintf("\n//%v\nfunc %v(%v) {\n}\n", doc, funcName, params)
 }
 
 func buildFuncParams(params *[]FuncParam) string {
@@ -91,23 +95,10 @@ func buildFuncParams(params *[]FuncParam) string {
 	return "testParams int"	
 }
 
-//func appendFuncToFile(functionDefinition string, file *os.File) {
-//    for {
-//    	if _, err := file.WriteString(functionDefinition); err != nil {
-//    	    panic(err)
-//    	}
-//    }
-//}
-
-//func getNewGoFile(functionDefinition, filename string) *os.File {
-func appendFuncToFile(functionDefinition, filename string) *os.File {
-	fo, err := os.Create(filename)
-    if err != nil { panic(err) }
-    defer func() {
-        if err := fo.Close(); err != nil {
-            panic(err)
-        }
-    }()
+func appendTextToFile(text, filename string) *os.File {
+	if (!fileExists(filename)) {
+		createFile(filename)
+	}
 	file, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY, 0600)
     if err != nil {
     	panic(err)
@@ -118,10 +109,31 @@ func appendFuncToFile(functionDefinition, filename string) *os.File {
         }
     }()
 
-    for {
-    	if _, err := file.WriteString(functionDefinition); err != nil {
-    	    panic(err)
-    	}
-    }
+	if _, err := file.WriteString(text); err != nil {
+	    panic(err)
+	}
+    
     return file
+}
+
+func createFile(filename string) {
+	fo, err := os.Create(filename)
+    if err != nil { panic(err) }
+    defer func() {
+        if err := fo.Close(); err != nil {
+            panic(err)
+        }
+    }()
+}
+
+func fileExists(filename string) bool {
+	_, err := os.Stat(filename)
+	if err != nil {
+		return false
+    }
+    return true
+}
+
+func getPlainGoFile() string {
+	return "package main\n\n"
 }
