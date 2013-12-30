@@ -3,10 +3,9 @@ package main
 import (
 	"net/http"
 	"fmt"
-	"os"
 	"strings"
 	"io/ioutil"
-	"github.com/maistora/GroovesharkApiExtractor/utils"
+	"./myIoUtil"
 )
 
 var FILE_NAME = "groovesharkApi.go"
@@ -24,7 +23,6 @@ type FuncParam struct {
 }
 
 func main() {
-	utils.Test()
 	page := getPageAsString("http://google.bg")
 	mainDiv := extractDivWithFunctions(page, "class/id")
 	links := getAllLinksToFunctions(mainDiv)
@@ -67,13 +65,13 @@ func getAllLinksToFunctions(mainDiv string) []string {
 
 func createApiGoFile(links []string) {
 	plainGoFileStr := getPlainGoFile()
-    appendTextToFile(plainGoFileStr, FILE_NAME)
+    myIoUtil.AppendTextToFile(plainGoFileStr, FILE_NAME)
 	for _, link := range links {
 		fmt.Println(link)
 		funcPage := getPageAsString(link)
 		funcProps := extractFuncProperties(funcPage)
 		funcString := populateFuncTemplate(funcProps)
-		appendTextToFile(funcString, FILE_NAME)
+		myIoUtil.AppendTextToFile(funcString, FILE_NAME)
 	}
 }
 
@@ -95,45 +93,6 @@ func populateFuncTemplate(props *FuncProperties) string {
 func buildFuncParams(params *[]FuncParam) string {
 	// TODO add implementation
 	return "testParams int"	
-}
-
-func appendTextToFile(text, filename string) *os.File {
-	if (!fileExists(filename)) {
-		createFile(filename)
-	}
-	file, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY, 0600)
-    if err != nil {
-    	panic(err)
-    }
-    defer func() {
-        if err := file.Close(); err != nil {
-            panic(err)
-        }
-    }()
-
-	if _, err := file.WriteString(text); err != nil {
-	    panic(err)
-	}
-    
-    return file
-}
-
-func createFile(filename string) {
-	fo, err := os.Create(filename)
-    if err != nil { panic(err) }
-    defer func() {
-        if err := fo.Close(); err != nil {
-            panic(err)
-        }
-    }()
-}
-
-func fileExists(filename string) bool {
-	_, err := os.Stat(filename)
-	if err != nil {
-		return false
-    }
-    return true
 }
 
 func getPlainGoFile() string {
