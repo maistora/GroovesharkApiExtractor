@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 	"io/ioutil"
+	"github.com/maistora/GroovesharkApiExtractor/utils"
 )
 
 var FILE_NAME = "groovesharkApi.go"
@@ -23,6 +24,7 @@ type FuncParam struct {
 }
 
 func main() {
+	utils.Test()
 	page := getPageAsString("http://google.bg")
 	mainDiv := extractDivWithFunctions(page, "class/id")
 	links := getAllLinksToFunctions(mainDiv)
