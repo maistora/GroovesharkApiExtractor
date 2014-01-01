@@ -6,21 +6,11 @@ import (
 	"strings"
 	"io/ioutil"
 	"./myIoUtil"
+	"./pageUtil"
+	"./structs"
 )
 
 var FILE_NAME = "groovesharkApi.go"
-
-type FuncProperties struct {
-	name string
-	doc string
-	params *[]FuncParam
-}
-
-type FuncParam struct {
-	name string
-	paramType string
-	required bool
-}
 
 func main() {
 	page := getPageAsString("http://google.bg")
@@ -75,24 +65,31 @@ func createApiGoFile(links []string) {
 	}
 }
 
-func extractFuncProperties(funcPage string) *FuncProperties{
-	funcProps := new(FuncProperties)
+func extractFuncProperties(funcPage string) *structs.FuncProperties {
+	funcProps := new(structs.FuncProperties)
+	funcProps.Name = pageUtil.GetFuncName(funcPage)
+	funcProps.Doc = pageUtil.GetFuncDoc(funcPage)
+	funcProps.Params = pageUtil.GetFuncParams(funcPage)
 	return funcProps
 }
 
-func populateFuncTemplate(props *FuncProperties) string {
-	// TODO format the doc as it can be on multiple rows
-	// TODO format params as they can be many. Check if they are all same type
-	// and if yes then put the type at the end. Can try with groups of types.
-	doc := strings.Replace(props.doc, "\n", "\n//", -1)
-	funcName := props.name
-	params := buildFuncParams(props.params)
+func populateFuncTemplate(props *structs.FuncProperties) string {
+	doc := strings.Replace(props.Doc, "\n", "\n//", -1)
+	funcName := props.Name
+	params := buildFuncParams(*props.Params)
 	return fmt.Sprintf("\n//%v\nfunc %v(%v) {\n}\n", doc, funcName, params)
 }
 
-func buildFuncParams(params *[]FuncParam) string {
-	// TODO add implementation
-	return "testParams int"	
+func buildFuncParams(params []structs.FuncParam) string {
+	if params == nil {
+		return ""
+	}
+	result := ""
+	for _, param := range params {
+		result += param.Name + " " + param.ParamType + ", "
+	}
+	result = result[:len(result) - 2] // for the last comma
+	return result
 }
 
 func getPlainGoFile() string {
