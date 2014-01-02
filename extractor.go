@@ -15,8 +15,8 @@ var FILE_NAME = "groovesharkApi.go"
 func main() {
 	page := getPageAsString("http://google.bg")
 	mainDiv := extractDivWithFunctions(page, "class/id")
-	links := getAllLinksToFunctions(mainDiv)
-	createApiGoFile(links)
+	ulrs := getAllUrlsToFunctions(mainDiv)
+	createApiGoFile(ulrs)
 }
 
 func getPageAsString(url string) string {
@@ -46,22 +46,22 @@ func extractDivWithFunctions(page, classifier string) string {
 	return mainDiv
 }
 
-func getAllLinksToFunctions(mainDiv string) []string {
-	links := make([]string, 0, 0)
-	links = append(links, "http://google.bg")
-	links = append(links, "http://google.bg")
-	return links 
+func getAllUrlsToFunctions(mainDiv string) []string {
+	ulrs := make([]string, 0, 0)
+	ulrs = append(ulrs, "http://google.bg")
+	ulrs = append(ulrs, "http://google.bg")
+	return ulrs 
 }
 
-func createApiGoFile(links []string) {
-	plainGoFileStr := getPlainGoFile()
-    myIoUtil.AppendTextToFile(plainGoFileStr, FILE_NAME)
-	for _, link := range links {
-		fmt.Println(link)
-		funcPage := getPageAsString(link)
+func createApiGoFile(ulrs []string) {
+	initFileText := getInitFileText()
+    myIoUtil.AppendTextToFile(initFileText, FILE_NAME)
+	for _, ulr := range ulrs {
+		funcPage := getPageAsString(ulr)
 		funcProps := extractFuncProperties(funcPage)
-		funcString := populateFuncTemplate(funcProps)
-		myIoUtil.AppendTextToFile(funcString, FILE_NAME)
+		funcAsText := populateFuncTemplate(funcProps)
+		myIoUtil.AppendTextToFile(funcAsText, FILE_NAME)
+		fmt.Println(funcAsText)
 	}
 }
 
@@ -92,6 +92,6 @@ func buildFuncParams(params []structs.FuncParam) string {
 	return result
 }
 
-func getPlainGoFile() string {
+func getInitFileText() string {
 	return "package main\n\n"
 }
