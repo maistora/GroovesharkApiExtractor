@@ -2,6 +2,8 @@ package pageUtil
 
 import (
 	"fmt"
+	"regexp"
+	"strings"
 	"../structs"
 	"../groupRegexp"
 )
@@ -27,16 +29,33 @@ func GetFuncDoc(page string) string {
 	return funcDoc
 }
 
-func GetFuncParams(page string) *[]structs.FuncParam {
-	param1 := new(structs.FuncParam)
-	param1.Name = "param1"
-	param1.ParamType = "Integer"
-	param1.Required = true
+const COL_NUM = 3
 
-	param2 := new(structs.FuncParam)
-	param2.Name = "param2"
-	param2.ParamType = "Boolean"
-	param2.Required = true
-	params := []structs.FuncParam {*param1, *param2}
+func GetFuncParams(page string) *[]structs.FuncParam {
+	// TODO serious refactor
+	regex := regexp.MustCompile(`<td>.*</td>`)
+	allParams := regex.FindAllString(page, -1)
+	params := make([]structs.FuncParam, 1, 1)
+	param := new(structs.FuncParam)
+	requiredPrefix := "<td><strong>"
+	typePrefix := "<td><em>"
+	namePrefix := "<td>"
+	for i, paramStr := range allParams {
+		if i % COL_NUM == 0 {
+			param = new(structs.FuncParam)
+		}
+		if strings.Contains(paramStr, requiredPrefix) {
+			param.Required = paramStr[len(requiredPrefix):len(paramStr) - (len(requiredPrefix) + 2)] // 2 closing tags
+		} else if strings.Contains(paramStr, typePrefix) {
+			param.ParamType = paramStr[len(typePrefix):len(paramStr) - (len(typePrefix) + 2)] // 2 closing tags
+		} else if strings.Contains(paramStr, namePrefix) {
+			param.Name = paramStr[len(namePrefix):len(paramStr) - (len(namePrefix) + 1)] // 1 closing tags
+		}
+		if i % COL_NUM == 0 {
+			params = append(params, *param)
+		}
+	}
+
+	fmt.Println(params)
 	return &params
 }

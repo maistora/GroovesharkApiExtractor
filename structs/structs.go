@@ -9,5 +9,5 @@ type FuncProperties struct {
 type FuncParam struct {
 	Name string
 	ParamType string
-	Required bool
+	Required string
 }
