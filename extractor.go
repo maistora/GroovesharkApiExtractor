@@ -48,8 +48,8 @@ func extractDivWithFunctions(page, classifier string) string {
 
 func getAllUrlsToFunctions(mainDiv string) []string {
 	ulrs := make([]string, 0, 0)
-	ulrs = append(ulrs, "http://google.bg")
-	ulrs = append(ulrs, "http://google.bg")
+	ulrs = append(ulrs, "http://developers.grooveshark.com/docs/public_api/v3/method.php?method=addUserLibrarySongs")
+	ulrs = append(ulrs, "http://developers.grooveshark.com/docs/public_api/v3/method.php?method=getUserLibrarySongs")
 	return ulrs 
 }
 
@@ -61,7 +61,6 @@ func createApiGoFile(ulrs []string) {
 		funcProps := extractFuncProperties(funcPage)
 		funcAsText := populateFuncTemplate(funcProps)
 		myIoUtil.AppendTextToFile(funcAsText, FILE_NAME)
-		fmt.Println(funcAsText)
 	}
 }
 
@@ -77,7 +76,7 @@ func populateFuncTemplate(props *structs.FuncProperties) string {
 	doc := strings.Replace(props.Doc, "\n", "\n//", -1)
 	funcName := props.Name
 	params := buildFuncParams(*props.Params)
-	return fmt.Sprintf("\n//%v\nfunc %v(%v) {\n}\n", doc, funcName, params)
+	return fmt.Sprintf("\n//%v\nfunc %v(%v) {\n\t//TODO impelemnt\n}\n", doc, funcName, params)
 }
 
 func buildFuncParams(params []structs.FuncParam) string {
