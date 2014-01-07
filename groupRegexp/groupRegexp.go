@@ -1,6 +1,6 @@
 package groupRegexp
 
-import "regexp"
+import ("regexp";"fmt")
 
 type GroupRegexp struct {
 	regexTxt string
@@ -30,7 +30,12 @@ func (mr *GroupRegexp) GetGroup(group string) string {
 	}
 
     groups := mr.regex.SubexpNames()
-    submatches := mr.regex.FindAllStringSubmatch(mr.text, -1)[0]
+    allMatches := mr.regex.FindAllStringSubmatch(mr.text, -1)
+    if allMatches == nil || len(allMatches) == 0 {
+    	fmt.Println("No matches found.")
+    	return ""
+    }
+    submatches := allMatches[0]
     mr.group2match = map[string]string {}
     for i, val := range submatches {
         mr.group2match[groups[i]] = val
