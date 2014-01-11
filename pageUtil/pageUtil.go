@@ -1,7 +1,6 @@
 package pageUtil
 
 import (
-	"fmt"
 	"regexp"
 	"../structs"
 	"../groupRegexp"
@@ -39,27 +38,35 @@ func GetFuncParams(page string) *[]structs.FuncParam {
 		if i % COL_NUM == 0 {
 			param = new(structs.FuncParam)
 		}
-
 		switch i % COL_NUM {
 		case 0:
-			param.Name = cleanTags(paramStr, 4, 1)
+			param.Name = extractName(paramStr)
 		case 1:
-			param.ParamType = cleanTags(paramStr, 8, 2)
+			param.ParamType = extractParamType(paramStr)
 		case 2:
-			param.Required = cleanTags(paramStr, 12, 2)
+			param.Required = extractRequired(paramStr)
 		}
 
-		// TODO fix this - it does not persist params after appending the value to the list
-		fmt.Println(*param)
-		if i % COL_NUM == 0 {
+		// append only the fully filled param
+		if i % COL_NUM == 2 { 
 			params = append(params, *param)
 		}
 	}
-
-	// fmt.Println((&params[0]).ParamType)
 	return &params
 }
 
 func cleanTags(text string, startTagsLen, tagNum int) string {
 	return text[startTagsLen:len(text) - (startTagsLen + tagNum)]	
+}
+
+func extractName(text string) string {
+	return cleanTags(text, 4, 1)
+}
+
+func extractParamType(text string) string {
+	return cleanTags(text, 8, 2)
+}
+
+func extractRequired(text string) string {
+	return cleanTags(text, 12, 2)
 }
