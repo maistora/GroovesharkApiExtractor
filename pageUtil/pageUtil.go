@@ -35,7 +35,7 @@ func GetFuncParams(page string) *[]structs.FuncParam {
 	params := make([]structs.FuncParam, 0, 0)
 	param := new(structs.FuncParam)
 	for i, paramStr := range allParams {
-		if i % COL_NUM == 0 {
+		if newParamIsReached(i) {
 			param = new(structs.FuncParam)
 		}
 		switch i % COL_NUM {
@@ -46,13 +46,19 @@ func GetFuncParams(page string) *[]structs.FuncParam {
 		case 2:
 			param.Required = extractRequired(paramStr)
 		}
-
-		// append only the fully filled param
-		if i % COL_NUM == 2 { 
+		if paramIsFilled(i) { 
 			params = append(params, *param)
 		}
 	}
 	return &params
+}
+
+func newParamIsReached(count int) bool {
+	return count % COL_NUM == 0
+}
+
+func paramIsFilled(count int) bool {
+	return count % COL_NUM == 2
 }
 
 func cleanTags(text string, startTagsLen, tagNum int) string {
