@@ -1,4 +1,6 @@
 GroovesharkApiExtractor
 =======================
 
-This program will extract the Grooveshark public API to .go file.
+This program extracts the Grooveshark public API to .go file.
+
+Check the example: extraction-result.go
