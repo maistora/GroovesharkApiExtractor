@@ -1,7 +1,6 @@
 package pageUtil
 
 import (
-	"fmt"
 	"net/http"
 	"io/ioutil"
 	"regexp"
@@ -9,9 +8,11 @@ import (
 	"../groupRegexp"
 )
 
+const GS_HOME = "http://developers.grooveshark.com"
+
 func ExtractMethodsDiv(page string) string {
 	groupName := "div"
-	regex := `(?s).*<div class="main_content_panes">(?P<` + groupName + `>.*)</div>.*`
+	regex := `(?s)(?U).*<div class="main_content_panes">(?P<` + groupName + `>.*)</div>.*`
 
 	groupRegex := groupRegexp.NewGroupRegexp(regex, page)
 
@@ -19,24 +20,41 @@ func ExtractMethodsDiv(page string) string {
 	return methodDiv
 }
 
-func ExtractMethodURLsAndTitles(page string) *[]structs.MethodExtraction {
-	regex := regexp.MustCompile(`(<a href="(.*)".*</a>)|(<h3>(.*)</h3>)`)
+func ExtractMethodURLsAndTitles(page string) *[]structs.MethodUrlExtraction {
+	extracts := make([]structs.MethodUrlExtraction, 0, 0)
+	regex := regexp.MustCompile(`(<a.*class="method".*</a>)|(<h3>(.*)</h3>)`)
 	methodsAndSections := removeOverviewSection(regex.FindAllString(page, -1))
-	fmt.Println(methodsAndSections)
+	for _, selection := range methodsAndSections {
+		extract := getMethodOrSectionExtraction(selection)
+		extracts = append(extracts, *extract)
+	}
+	return &extracts
+}
 
-	// methodUrlGroup := "methodUrl"
-	// sectionGroup := "section"
-	// regex := `(<a href="(?P<` + methodUrlGroup + `>.*)".*</a>)|(<h3>(?P<` + sectionGroup + `>.*)</h3>)`
+func getMethodOrSectionExtraction(selection string) *structs.MethodUrlExtraction {
+	methodUrlGroup := "methodUrl"
+	sectionGroup := "section"
+	regex := `((?U)<a\shref="(?P<` + methodUrlGroup + `>.*)".*</a>)|(<h3>(?P<` + sectionGroup + `>.*)</h3>)`
 
-	// groupRegex := groupRegexp.NewGroupRegexp(regex, page)
+	groupRegex := groupRegexp.NewGroupRegexp(regex, selection)
 
-	// methodUrl := groupRegex.GetGroup(methodUrlGroup)
-	// section := groupRegex.GetGroup(sectionGroup)
+	methodUrl := groupRegex.GetGroup(methodUrlGroup)
+	section := groupRegex.GetGroup(sectionGroup)
 
-	// fmt.Println(methodUrl)
-	// fmt.Println(section)
+	return buildExtract(methodUrl, section)
+}
 
-	return nil
+func buildExtract(methodUrl, section string) *structs.MethodUrlExtraction {
+	extract := new(structs.MethodUrlExtraction)
+	if methodUrl != "" {
+		extract.Text = GS_HOME + methodUrl
+		extract.IsURL = true
+	} else {
+		extract.Text = section
+		extract.IsURL = false
+	}
+
+	return extract
 }
 
 func removeOverviewSection(methodsAndSections []string) []string {

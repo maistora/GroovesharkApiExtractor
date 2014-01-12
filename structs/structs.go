@@ -12,7 +12,7 @@ type FuncParam struct {
 	Required string
 }
 
-type MethodExtraction struct {
+type MethodUrlExtraction struct {
 	Text string
 	IsURL bool
 }

@@ -35,6 +35,7 @@ func CreateFile(filename string) {
 
 func FileExists(filename string) bool {
 	_, err := os.Stat(filename)
+    // any error will mean file doesn't exist
 	if err != nil {
 		return false
     }

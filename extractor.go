@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"bytes"
 	"strings"
 	"./myIoUtil"
 	"./pageUtil"
@@ -13,27 +14,33 @@ var FILE_NAME = "groovesharkApi.go"
 func main() {
 	page := pageUtil.GetPageAsString("http://developers.grooveshark.com/docs/public_api/v3")
 	mainDiv := pageUtil.ExtractMethodsDiv(page)
-	ulrs := getAllUrlsToFunctions(mainDiv)
-	createApiGoFile(ulrs)
+	ulrsOrSections := pageUtil.ExtractMethodURLsAndTitles(mainDiv)
+	createApiGoFile(*ulrsOrSections)
 }
 
-func getAllUrlsToFunctions(mainDiv string) []string {
-	ulrs := make([]string, 0, 0)
-	pageUtil.ExtractMethodURLsAndTitles(mainDiv)
-	// ulrs = append(ulrs, "http://developers.grooveshark.com/docs/public_api/v3/method.php?method=addUserLibrarySongs")
-	// ulrs = append(ulrs, "http://developers.grooveshark.com/docs/public_api/v3/method.php?method=getUserLibrarySongs")
-	return ulrs 
-}
-
-func createApiGoFile(ulrs []string) {
+func createApiGoFile(urlsOrSections []structs.MethodUrlExtraction) {
 	initFileText := getInitFileText()
     myIoUtil.AppendTextToFile(initFileText, FILE_NAME)
-	for _, ulr := range ulrs {
-		funcPage := pageUtil.GetPageAsString(ulr)
-		funcProps := extractFuncProperties(funcPage)
-		funcAsText := populateFuncTemplate(funcProps)
-		myIoUtil.AppendTextToFile(funcAsText, FILE_NAME)
+    var buffer bytes.Buffer
+	for _, urlOrSect := range urlsOrSections {
+		if urlOrSect.IsURL {
+			buffer.WriteString(getFunctionFromUrl(urlOrSect.Text))
+		} else {
+			buffer.WriteString(getSection(urlOrSect.Text))
+		}
 	}
+	myIoUtil.AppendTextToFile(buffer.String(), FILE_NAME)
+}
+
+func getSection(section string) string {
+	return fmt.Sprintf("\n// ================= %v =================\n", section)
+}
+
+func getFunctionFromUrl(url string) string {
+	funcPage := pageUtil.GetPageAsString(url)
+	funcProps := extractFuncProperties(funcPage)
+	funcAsText := populateFuncTemplate(funcProps)
+	return funcAsText
 }
 
 func extractFuncProperties(funcPage string) *structs.FuncProperties {
@@ -52,7 +59,7 @@ func populateFuncTemplate(props *structs.FuncProperties) string {
 }
 
 func buildFuncParams(params []structs.FuncParam) string {
-	if params == nil {
+	if params == nil || len(params) == 0 {
 		return ""
 	}
 	result := ""
