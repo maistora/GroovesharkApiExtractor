@@ -32,7 +32,7 @@ func (mr *GroupRegexp) GetGroup(group string) string {
     groups := mr.regex.SubexpNames()
     allMatches := mr.regex.FindAllStringSubmatch(mr.text, -1)
     if allMatches == nil || len(allMatches) == 0 {
-    	fmt.Println("No matches found.")
+    	fmt.Print("!") // No matches found.
     	return ""
     }
     submatches := allMatches[0]

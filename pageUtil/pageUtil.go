@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"io/ioutil"
 	"regexp"
+	"fmt"
+	"strings"
 	"../structs"
 	"../groupRegexp"
 )
@@ -94,14 +96,34 @@ func GetFuncName(page string) string {
 }
 
 func GetFuncDoc(page string) string {
+	funcDoc := getDoc(page)
+	funcNote := getNote(page)
+
+	doc := ""
+	if len(funcDoc) != 0 {
+		doc += fmt.Sprintf("// %v\n", funcDoc)
+	}
+	if len(funcNote) != 0 {
+		doc += fmt.Sprintf("// Note: %v\n", funcNote)
+	}
+
+	return doc
+}
+
+func getDoc(page string) string {
 	doc := `doc`
+	regexDoc := `(?s)(?U).*<p>(?P<` + doc + `>.*)</p>.*`
+	docRegex := groupRegexp.NewGroupRegexp(regexDoc, page)
+
+	return strings.Trim(docRegex.GetGroup(doc), "")
+}
+
+func getNote(page string) string {
 	note := `note`
+	regexNote := `(?s)(?U).*<p><em>(?P<` + note + `>.*)</em></p>.*`
+	noteRegex := groupRegexp.NewGroupRegexp(regexNote, page)
 
-	regex := `(?s).*<p>(?P<` + doc + `>.*)</p>.*<p><em>(?P<` + note + `>.*)</em></p>.*`
-	groupRegex := groupRegexp.NewGroupRegexp(regex, page)
-
-	funcDoc := groupRegex.GetGroup(doc) + "\nNOTE: " + groupRegex.GetGroup(note)
-	return funcDoc
+	return strings.Trim(noteRegex.GetGroup(note), " ")
 }
 
 const PARAM_TABLE_COLS = 3

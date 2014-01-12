@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"bytes"
-	"strings"
 	"./myIoUtil"
 	"./pageUtil"
 	"./structs"
@@ -23,12 +22,14 @@ func createApiGoFile(urlsOrSections []structs.MethodUrlExtraction) {
     myIoUtil.AppendTextToFile(initFileText, FILE_NAME)
     var buffer bytes.Buffer
 	for _, urlOrSect := range urlsOrSections {
+		fmt.Print(".")
 		if urlOrSect.IsURL {
 			buffer.WriteString(getFunctionFromUrl(urlOrSect.Text))
 		} else {
 			buffer.WriteString(getSection(urlOrSect.Text))
 		}
 	}
+	fmt.Println("")
 	myIoUtil.AppendTextToFile(buffer.String(), FILE_NAME)
 }
 
@@ -52,10 +53,9 @@ func extractFuncProperties(funcPage string) *structs.FuncProperties {
 }
 
 func populateFuncTemplate(props *structs.FuncProperties) string {
-	doc := strings.Replace(props.Doc, "\n", "\n//", -1)
 	funcName := props.Name
 	params := buildFuncParams(*props.Params)
-	return fmt.Sprintf("\n//%v\nfunc %v(%v) {\n\t//TODO impelemnt\n}\n", doc, funcName, params)
+	return fmt.Sprintf("\n%vfunc %v(%v) {\n\t//TODO impelemnt\n}\n", props.Doc, funcName, params)
 }
 
 func buildFuncParams(params []structs.FuncParam) string {
