@@ -1,10 +1,69 @@
 package pageUtil
 
 import (
+	"fmt"
+	"net/http"
+	"io/ioutil"
 	"regexp"
 	"../structs"
 	"../groupRegexp"
 )
+
+func ExtractMethodsDiv(page string) string {
+	groupName := "div"
+	regex := `(?s).*<div class="main_content_panes">(?P<` + groupName + `>.*)</div>.*`
+
+	groupRegex := groupRegexp.NewGroupRegexp(regex, page)
+
+	methodDiv := groupRegex.GetGroup(groupName)
+	return methodDiv
+}
+
+func ExtractMethodURLsAndTitles(page string) *[]structs.MethodExtraction {
+	regex := regexp.MustCompile(`(<a href="(.*)".*</a>)|(<h3>(.*)</h3>)`)
+	methodsAndSections := removeOverviewSection(regex.FindAllString(page, -1))
+	fmt.Println(methodsAndSections)
+
+	// methodUrlGroup := "methodUrl"
+	// sectionGroup := "section"
+	// regex := `(<a href="(?P<` + methodUrlGroup + `>.*)".*</a>)|(<h3>(?P<` + sectionGroup + `>.*)</h3>)`
+
+	// groupRegex := groupRegexp.NewGroupRegexp(regex, page)
+
+	// methodUrl := groupRegex.GetGroup(methodUrlGroup)
+	// section := groupRegex.GetGroup(sectionGroup)
+
+	// fmt.Println(methodUrl)
+	// fmt.Println(section)
+
+	return nil
+}
+
+func removeOverviewSection(methodsAndSections []string) []string {
+	return methodsAndSections[1:]
+}
+
+func GetPageAsString(url string) string {
+	response, err := http.Get(url)
+	defer response.Body.Close()
+	if err != nil {
+		panic(err)
+	}
+	respBodyStr := getRespBodyAsString(response)
+	return respBodyStr
+}
+
+func getRespBodyAsString(response *http.Response) string {
+	if response.StatusCode != 200 { 
+		return ""
+	}
+	bodyBytes, err2 := ioutil.ReadAll(response.Body)
+	if err2 != nil {
+		panic(err2)
+	}
+	bodyString := string(bodyBytes) 
+	return bodyString
+}
 
 func GetFuncName(page string) string {
 	groupName := `funcName`
@@ -27,7 +86,7 @@ func GetFuncDoc(page string) string {
 	return funcDoc
 }
 
-const COL_NUM = 3
+const PARAM_TABLE_COLS = 3
 
 func GetFuncParams(page string) *[]structs.FuncParam {
 	regex := regexp.MustCompile(`<td>.*</td>`)
@@ -38,7 +97,7 @@ func GetFuncParams(page string) *[]structs.FuncParam {
 		if newParamIsReached(i) {
 			param = new(structs.FuncParam)
 		}
-		switch i % COL_NUM {
+		switch i % PARAM_TABLE_COLS {
 		case 0:
 			param.Name = extractName(paramStr)
 		case 1:
@@ -54,11 +113,11 @@ func GetFuncParams(page string) *[]structs.FuncParam {
 }
 
 func newParamIsReached(count int) bool {
-	return count % COL_NUM == 0
+	return count % PARAM_TABLE_COLS == 0
 }
 
 func paramIsFilled(count int) bool {
-	return count % COL_NUM == 2
+	return count % PARAM_TABLE_COLS == 2
 }
 
 func cleanTags(text string, startTagsLen, tagNum int) string {

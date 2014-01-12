@@ -11,3 +11,8 @@ type FuncParam struct {
 	ParamType string
 	Required string
 }
+
+type MethodExtraction struct {
+	Text string
+	IsURL bool
+}

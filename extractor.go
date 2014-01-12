@@ -1,10 +1,8 @@
 package main
 
 import (
-	"net/http"
 	"fmt"
 	"strings"
-	"io/ioutil"
 	"./myIoUtil"
 	"./pageUtil"
 	"./structs"
@@ -13,43 +11,17 @@ import (
 var FILE_NAME = "groovesharkApi.go"
 
 func main() {
-	page := getPageAsString("http://google.bg")
-	mainDiv := extractDivWithFunctions(page, "class/id")
+	page := pageUtil.GetPageAsString("http://developers.grooveshark.com/docs/public_api/v3")
+	mainDiv := pageUtil.ExtractMethodsDiv(page)
 	ulrs := getAllUrlsToFunctions(mainDiv)
 	createApiGoFile(ulrs)
 }
 
-func getPageAsString(url string) string {
-	response, err := http.Get(url)
-	defer response.Body.Close()
-	if err != nil {
-		panic(err)
-	}
-	respBodyStr := getRespBodyAsString(response)
-	return respBodyStr
-}
-
-func getRespBodyAsString(response *http.Response) string {
-	if response.StatusCode != 200 { 
-		return ""
-	}
-	bodyBytes, err2 := ioutil.ReadAll(response.Body)
-	if err2 != nil {
-		panic(err2)
-	}
-	bodyString := string(bodyBytes) 
-	return bodyString
-}
-
-func extractDivWithFunctions(page, classifier string) string {
-	mainDiv := " "
-	return mainDiv
-}
-
 func getAllUrlsToFunctions(mainDiv string) []string {
 	ulrs := make([]string, 0, 0)
-	ulrs = append(ulrs, "http://developers.grooveshark.com/docs/public_api/v3/method.php?method=addUserLibrarySongs")
-	ulrs = append(ulrs, "http://developers.grooveshark.com/docs/public_api/v3/method.php?method=getUserLibrarySongs")
+	pageUtil.ExtractMethodURLsAndTitles(mainDiv)
+	// ulrs = append(ulrs, "http://developers.grooveshark.com/docs/public_api/v3/method.php?method=addUserLibrarySongs")
+	// ulrs = append(ulrs, "http://developers.grooveshark.com/docs/public_api/v3/method.php?method=getUserLibrarySongs")
 	return ulrs 
 }
 
@@ -57,7 +29,7 @@ func createApiGoFile(ulrs []string) {
 	initFileText := getInitFileText()
     myIoUtil.AppendTextToFile(initFileText, FILE_NAME)
 	for _, ulr := range ulrs {
-		funcPage := getPageAsString(ulr)
+		funcPage := pageUtil.GetPageAsString(ulr)
 		funcProps := extractFuncProperties(funcPage)
 		funcAsText := populateFuncTemplate(funcProps)
 		myIoUtil.AppendTextToFile(funcAsText, FILE_NAME)
@@ -92,5 +64,5 @@ func buildFuncParams(params []structs.FuncParam) string {
 }
 
 func getInitFileText() string {
-	return "package main\n\n"
+	return "// This file was auto-generated from the\n// Grooveshark API Extractor\npackage main\n\n"
 }
