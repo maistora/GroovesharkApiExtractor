@@ -55,7 +55,7 @@ func extractFuncProperties(funcPage string) *structs.FuncProperties {
 func populateFuncTemplate(props *structs.FuncProperties) string {
 	funcName := props.Name
 	params := buildFuncParams(*props.Params)
-	return fmt.Sprintf("\n%vfunc %v(%v) {\n\t//TODO impelemnt\n}\n", props.Doc, funcName, params)
+	return fmt.Sprintf("\n%vfunc %v(%v) {\n\t// TODO impelemnt\n}\n", props.Doc, funcName, params)
 }
 
 func buildFuncParams(params []structs.FuncParam) string {
