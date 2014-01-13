@@ -63,8 +63,12 @@ func buildFuncParams(params []structs.FuncParam) string {
 		return ""
 	}
 	result := ""
-	for _, param := range params {
-		result += param.Name + " " + param.ParamType + ", "
+	for i, param := range params {
+		if i < (len(params) - 1) && params[i + 1].ParamType == param.ParamType {
+			result += param.Name + ", "
+		} else {
+			result += param.Name + " " + param.ParamType + ", "
+		}
 	}
 	result = result[:len(result) - 2] // for the last comma
 	return result
