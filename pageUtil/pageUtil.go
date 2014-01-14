@@ -92,7 +92,9 @@ func GetFuncName(page string) string {
 	groupRegex := groupRegexp.NewGroupRegexp(regex, page)
 
 	funcName := groupRegex.GetGroup(groupName)
-	return funcName
+	head := strings.ToUpper(string(funcName[0]))
+	tail := string(funcName[1:])
+	return head + tail
 }
 
 func GetFuncDoc(page string) string {

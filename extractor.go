@@ -55,7 +55,7 @@ func extractFuncProperties(funcPage string) *structs.FuncProperties {
 func populateFuncTemplate(props *structs.FuncProperties) string {
 	funcName := props.Name
 	params := buildFuncParams(*props.Params)
-	return fmt.Sprintf("\n%vfunc %v(%v) {\n\t// TODO impelemnt\n}\n", props.Doc, funcName, params)
+	return fmt.Sprintf("\n%vfunc (sharky *GoSharky) %v(%v) {\n\t// TODO impelemnt\n}\n", props.Doc, funcName, params)
 }
 
 func buildFuncParams(params []structs.FuncParam) string {
@@ -75,5 +75,17 @@ func buildFuncParams(params []structs.FuncParam) string {
 }
 
 func getInitFileText() string {
-	return "// This file was auto-generated from the\n// Grooveshark API Extractor\npackage main\n\n"
+	return `// This file was auto-generated from the
+// Grooveshark API Extractor
+package main
+
+
+import (
+	// TODO add imports
+)
+
+type GoSharky struct {
+	// TODO impl
+}
+`
 }
